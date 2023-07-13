@@ -1,0 +1,6 @@
+<launch>
+    <include file = "$(find dobot_moveit)/launch/demo.launch"/>
+    <node pkg = "bhampick" name = "colmain3rd" type = "colmain3rd" output = "screen"/>
+    <node pkg = "bhampick" name = "colpick3rd" type = "colpick3rd.py"  output = "screen"/>
+    <node pkg = "bhampick" name = "pubdynamiccam" type = "pubdynamiccam.py"  output = "screen"/>
+</launch>

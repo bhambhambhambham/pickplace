@@ -1,0 +1,86 @@
+#include <ros/ros.h>
+#include <tf2_ros/static_transform_broadcaster.h>
+#include <gpd_ros/GraspConfigList.h>
+#include <gpd_ros/GraspConfig.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include <visualization_msgs/MarkerArray.h>
+#include <tf2/LinearMath/Quaternion.h>
+#include <tf/transform_datatypes.h>
+
+class gdd{
+    private:
+        tf2_ros::StaticTransformBroadcaster broadcaster_approach;
+        tf2_ros::StaticTransformBroadcaster broadcaster_grasp;
+        tf2_ros::StaticTransformBroadcaster broadcaster_retreat;
+        tf2_ros::StaticTransformBroadcaster broadcaster_lift;
+        ros::Subscriber subscriber;
+        double ax = 0;
+        double ay = 0;
+        double az = 0;
+    
+    public:
+        gdd(ros::NodeHandle *nodehan){
+            subscriber = nodehan->subscribe("/detect_grasps/clustered_grasps", 10, &gdd::callback,this);
+        }
+
+        void callback(const gpd_ros::GraspConfigList& list){
+            gpd_ros::GraspConfig data;
+            data = list.grasps[0];
+            ax = data.position.x;
+            ay = data.position.y+0.05;
+            az = data.position.z;
+
+            tf::Vector3 approach(data.approach.x, data.approach.y, data.approach.z);
+            tf::Vector3 binormal(data.binormal.x, data.binormal.y, data.binormal.z);
+            tf::Vector3 axis(data.axis.x, data.axis.y, data.axis.z);
+
+            tf::Matrix3x3 rotation_matrix(approach.x(), binormal.x(), axis.x(),
+                                  approach.y(), binormal.y(), axis.y(),
+                                  approach.z(), binormal.z(), axis.z());
+
+            tf::Quaternion quaternion;
+            rotation_matrix.getRotation(quaternion);
+
+            tf2::Quaternion quat;
+            quat.setRPY(0, 0, 0);
+
+            createCollisionObjectFrame(broadcaster_grasp, "zed2i_camera_center", "obj_grasp", ax, ay, az, quaternion.x(), quaternion.y(), quaternion.z(), quaternion.w());
+            ros::Duration(0.3).sleep();
+            createCollisionObjectFrame(broadcaster_approach, "obj_grasp", "obj_approach", -0.1, 0, 0, quat[0], quat[1], quat[2], quat[3]);
+            createCollisionObjectFrame(broadcaster_retreat, "obj_grasp", "obj_retreat", -0.15, 0, 0, quat[0], quat[1], quat[2], quat[3]);
+            createCollisionObjectFrame(broadcaster_lift, "obj_grasp", "obj_lift", 0, 0, -0.15, quat[0], quat[1], quat[2], quat[3]);
+            return;
+        }
+
+        void createCollisionObjectFrame(tf2_ros::StaticTransformBroadcaster& broadcaster,
+                                const std::string& parent_frame,
+                                const std::string& child_frame,
+                                const double x, const double y, const double z,
+                                const double xx, const double yy, const double zz, const double ww)
+        {
+        geometry_msgs::TransformStamped transform;
+        transform.header.stamp = ros::Time::now();
+        transform.header.frame_id = parent_frame;
+        transform.child_frame_id = child_frame;
+        transform.transform.translation.x = x;
+        transform.transform.translation.y = y;
+        transform.transform.translation.z = z;
+
+        transform.transform.rotation.x = xx;
+        transform.transform.rotation.y = yy;
+        transform.transform.rotation.z = zz;
+        transform.transform.rotation.w = ww;
+
+        broadcaster.sendTransform(transform);
+        return;
+        }
+};
+
+int main(int argc, char** argv)
+{
+    ros::init(argc, argv, "Broadcast_Grasps_TF");
+    ros::NodeHandle nh;
+    gdd g = gdd(&nh);
+    ros::spin();
+    return 0;
+}

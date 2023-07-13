@@ -1,0 +1,4 @@
+float32[] objects
+bool place
+int16 floor
+---

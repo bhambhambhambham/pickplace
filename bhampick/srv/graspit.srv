@@ -1,0 +1,4 @@
+bool graspstatus
+---
+bool successstatus
+string info

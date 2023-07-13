@@ -1,0 +1,153 @@
+#include <ros/ros.h>
+#include <tf2_ros/static_transform_broadcaster.h>
+#include <gpd_ros/GraspConfig.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include <visualization_msgs/MarkerArray.h>
+
+// double ax = 0;
+// double ay = 0;
+// double az = 0;
+// double arx = 0;
+// double ary = 0;
+// double arz = 0;
+// double arw = 0;
+
+// double ox, oy, oz, oroll, opitch, oyaw;
+
+// void createCollisionObjectFrame(
+//                                 const std::string& parent_frame,
+//                                 const std::string& child_frame,
+//                                 const double x, const double y, const double z,
+//                                 const double xx, const double yy, const double zz, const double ww)
+// {
+
+//     ROS_INFO("bced");
+//     tf2_ros::StaticTransformBroadcaster broadcaster;
+//   geometry_msgs::TransformStamped transform;
+//   transform.header.stamp = ros::Time::now();
+//   transform.header.frame_id = parent_frame;
+//   transform.child_frame_id = child_frame;
+//   transform.transform.translation.x = x;
+//   transform.transform.translation.y = y;
+//   transform.transform.translation.z = z;
+// //   tf2::Quaternion quat;
+// //   quat.setRPY(xx, yy, zz);
+// //   transform.transform.rotation = tf2::toMsg(quat);
+//   transform.transform.rotation.x = xx;
+//   transform.transform.rotation.y = yy;
+//   transform.transform.rotation.z = zz;
+//   transform.transform.rotation.w = ww;
+//   broadcaster.sendTransform(transform);
+// }
+
+// void callback(const visualization_msgs::MarkerArray& data)
+// {
+//     ROS_INFO("cb");
+//     ax = data.markers[0].pose.position.x;
+//     ay = data.markers[0].pose.position.y;
+//     az = data.markers[0].pose.position.z;
+//     arx = data.markers[0].pose.orientation.x;
+//     ary = data.markers[0].pose.orientation.y;
+//     arz = data.markers[0].pose.orientation.z;
+//     arw = data.markers[0].pose.orientation.w;
+//     createCollisionObjectFrame( "base_link", "obj", ax, ay, az, arx, ary, arz, arw);
+
+
+//     return;
+// }
+
+// void callback(const gpd_ros::GraspConfig& data)
+// {
+//     ROS_INFO("cb");
+//     ax = data.position.x;
+//     ay = data.position.y+0.05;
+//     az = data.position.z;
+//     // arx = data.orientation.x;
+//     // ary = data.orientation.y;
+//     // arz = data.orientation.z;
+//     arw = 1;
+//     createCollisionObjectFrame( "zed2i_camera_center", "obj", ax, ay, az, arx, ary, arz, arw);
+
+
+//     return;
+// }
+
+class gdd{
+    private:
+        
+        tf2_ros::StaticTransformBroadcaster broadcaster;
+        ros::Subscriber subscriber;
+        
+        double ax = 0;
+        double ay = 0;
+        double az = 0;
+        double arx = 0;
+        double ary = 0;
+        double arz = 0;
+        double arw = 0;
+        double ox, oy, oz, oroll, opitch, oyaw;
+    
+    public:
+        gdd(ros::NodeHandle *nodehan){
+            ROS_INFO("yuio");
+            subscriber = nodehan->subscribe("/detect_grasps/best_grasp", 10, &gdd::callback,this);
+        }
+
+
+        void callback(const gpd_ros::GraspConfig& data){
+            ROS_INFO("cb");
+            ax = data.position.x;
+            ay = data.position.y+0.05;
+            az = data.position.z;
+            // arx = data.orientation.x;
+            // ary = data.orientation.y;
+            // arz = data.orientation.z;
+            arw = 1;
+            createCollisionObjectFrame( "zed2i_camera_center", "obj", ax, ay, az, arx, ary, arz, arw);
+
+
+            return;
+        }
+
+        void createCollisionObjectFrame(
+                                const std::string& parent_frame,
+                                const std::string& child_frame,
+                                const double x, const double y, const double z,
+                                const double xx, const double yy, const double zz, const double ww)
+        {
+
+            ROS_INFO("bced");
+        geometry_msgs::TransformStamped transform;
+        transform.header.stamp = ros::Time::now();
+        transform.header.frame_id = parent_frame;
+        transform.child_frame_id = child_frame;
+        transform.transform.translation.x = x;
+        transform.transform.translation.y = y;
+        transform.transform.translation.z = z;
+        //   tf2::Quaternion quat;
+        //   quat.setRPY(xx, yy, zz);
+        //   transform.transform.rotation = tf2::toMsg(quat);
+        transform.transform.rotation.x = xx;
+        transform.transform.rotation.y = yy;
+        transform.transform.rotation.z = zz;
+        transform.transform.rotation.w = ww;
+
+        ROS_INFO_STREAM(transform);
+        broadcaster.sendTransform(transform);
+
+        return;
+        }
+
+
+};
+
+int main(int argc, char** argv)
+{
+    ros::init(argc, argv, "bctf_node");
+    ros::NodeHandle nh;
+    gdd g = gdd(&nh);
+    ROS_INFO("gbhnjm");
+    ros::spin();
+
+    return 0;
+}

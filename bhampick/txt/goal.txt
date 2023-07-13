@@ -1,0 +1,48 @@
+#!/usr/bin/env python3
+
+import rospy
+import moveit_commander
+from geometry_msgs.msg import Pose
+from gpd_ros.msg import GraspConfig
+import tf
+import math
+from visualization_msgs.msg import Marker
+from geometry_msgs.msg import Quaternion
+from tf.transformations import quaternion_from_euler
+from tf.transformations import euler_from_quaternion
+
+move_group = moveit_commander.MoveGroupCommander("arm")
+
+def movetogoal():
+    rospy.init_node("goal", anonymous=True)
+    rospy.Subscriber("/detect_grasps/best_grasp", GraspConfig, callback)
+    rospy.spin()
+
+def callback(data:GraspConfig):
+    global p
+    p = Pose()
+    
+    tf_listener = tf.TransformListener()
+    tf_listener.waitForTransform("world", "obj_approach", rospy.Time(0), rospy.Duration(1.0))
+    
+    (trans, rot) = tf_listener.lookupTransform("world", "obj_approach", rospy.Time(0))
+    
+    euler = euler_from_quaternion(rot)
+    quaternion = quaternion_from_euler(euler[0],euler[1],euler[2])
+
+    p.position.x = trans[0]
+    p.position.y = trans[1]
+    p.position.z = trans[2]
+    p.orientation.x = quaternion[0]
+    p.orientation.y = quaternion[1]
+    p.orientation.z = quaternion[2]
+    p.orientation.w = quaternion[3]
+
+    move_group.set_pose_target(p)
+    success = move_group.go(wait=True)
+    move_group.stop()
+    move_group.clear_pose_targets()
+    return
+
+if __name__ == "__main__":
+    movetogoal()

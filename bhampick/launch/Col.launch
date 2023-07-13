@@ -1,0 +1,10 @@
+<launch>
+    <node pkg = "bhampick" name = "colpubdim" type = "colpubdim.py"/>
+    <include file = "$(find dobot_moveit)/launch/demo.launch"/>
+    <node pkg = "bhampick" name = "colmain" type = "colmain" output = "screen"/>
+    <node pkg = "bhampick" name = "colpick" type = "colpick.py"  output = "screen"/>
+    <node pkg = "bhampick" name = "colpubrpy" type = "colpubrpy.py"  output = "screen"/>
+    <!-- <node pkg = "bhampick" name = "markerpub" type = "markerpub"/> -->
+    <!-- <node pkg = "bhampick" name = "obtf" type = "obtf.py" output = "screen" launch-prefix="gnome-terminal command"/> -->
+    <!-- <node pkg="rviz" type="rviz" name="rviz1" args="-d $(find panda_moveit_config)/launch/gpdrostest.rviz" output="screen"/> -->
+</launch>

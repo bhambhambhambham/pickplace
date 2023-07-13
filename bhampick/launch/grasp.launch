@@ -1,0 +1,5 @@
+<launch>
+    <node pkg = "bhampick" name = "grasptest" type = "grasptest"/>
+    <node pkg = "bhampick" name = "broadcast" type = "broadcast"/>
+    <include file = "$(find panda_moveit_config)/launch/demo_config.launch"/>
+</launch>

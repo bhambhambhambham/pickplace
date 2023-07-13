@@ -1,0 +1,16 @@
+    from tf.transformations import quaternion_from_euler
+
+    scene = moveit_commander.PlanningSceneInterface()
+    
+    boxpose = PoseStamped()
+    q = tf.transformations.quaternion_from_euler(0, 0, 0)
+    
+    boxpose.header.frame_id = "world"
+    boxpose.pose.position.x = 0.3
+    boxpose.pose.position.y = 0.3
+    boxpose.pose.position.z = 0.3
+    
+    boxpose.pose.orientation.x = q[0]
+    boxpose.pose.orientation.y = q[1]
+    boxpose.pose.orientation.z = q[2]
+    boxpose.pose.orientation.w = q[3]
